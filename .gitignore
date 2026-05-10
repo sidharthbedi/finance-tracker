@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+feedback.db
+*.xls
+*.xlsx
+.DS_Store
+.env
