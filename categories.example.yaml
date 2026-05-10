@@ -1,0 +1,35 @@
+# Copy this file to categories.yaml and customize for your own expense categories.
+# categories.yaml is excluded from git — your personal categories stay private.
+
+categories:
+  - Rent
+  - Groceries
+  - Utilities
+  - Transportation
+  - Eating Out
+  - Entertainment
+  - Healthcare
+  - Insurance
+  - Education
+  - Investments
+  - Savings
+  - Shopping
+  - Subscriptions
+  - Others
+
+# Maps each category to a high-level bucket for the summary sheet.
+buckets:
+  Rent: Expenses - Mandatory
+  Groceries: Expenses - Mandatory
+  Utilities: Expenses - Mandatory
+  Transportation: Expenses - Mandatory
+  Eating Out: Expenses - Discretionary
+  Entertainment: Expenses - Discretionary
+  Healthcare: Expenses - Mandatory
+  Insurance: Expenses - Mandatory
+  Education: Expenses - Mandatory
+  Investments: Long Term Savings
+  Savings: Long Term Savings
+  Shopping: Expenses - Discretionary
+  Subscriptions: Expenses - Discretionary
+  Others: Expenses - Discretionary

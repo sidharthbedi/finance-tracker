@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 feedback.db
+categories.yaml
 *.xls
 *.xlsx
 .DS_Store
