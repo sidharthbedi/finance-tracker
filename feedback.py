@@ -23,6 +23,18 @@ class FeedbackDB:
                 CREATE INDEX IF NOT EXISTS idx_description
                 ON corrections (description)
             """)
+            # Separate table for eval — stores ALL rows (correct + incorrect)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS eval_dataset (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    description TEXT NOT NULL,
+                    amount REAL,
+                    true_category TEXT NOT NULL,
+                    true_sub_category TEXT NOT NULL,
+                    was_corrected INTEGER NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
     def save(self, description: str, amount: float, category: str, sub_category: str):
         """Upsert a correction — same description+amount overwrites the old one."""
@@ -67,3 +79,22 @@ class FeedbackDB:
     def count(self) -> int:
         with sqlite3.connect(self.db_path) as conn:
             return conn.execute("SELECT COUNT(*) FROM corrections").fetchone()[0]
+
+    def save_eval_row(self, description: str, amount: float, category: str, sub_category: str, was_corrected: bool):
+        """Save a single row to the eval dataset (called for every row on download)."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT INTO eval_dataset (description, amount, true_category, true_sub_category, was_corrected)
+                VALUES (?, ?, ?, ?, ?)
+            """, (description.strip(), amount, category, sub_category, int(was_corrected)))
+
+    def get_eval_dataset(self) -> List[Tuple]:
+        with sqlite3.connect(self.db_path) as conn:
+            return conn.execute(
+                """SELECT description, amount, true_category, true_sub_category, was_corrected
+                   FROM eval_dataset ORDER BY created_at"""
+            ).fetchall()
+
+    def eval_count(self) -> int:
+        with sqlite3.connect(self.db_path) as conn:
+            return conn.execute("SELECT COUNT(*) FROM eval_dataset").fetchone()[0]

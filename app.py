@@ -208,6 +208,24 @@ if st.session_state.results is not None:
     with col_download:
         cfg = reload_config()
         excel_bytes = export_to_excel(edited, cfg.get("buckets", {}))
+
+        # Before downloading, snapshot every row into the eval dataset
+        # so evals have a representative sample (correct + incorrect rows)
+        original = st.session_state.results
+        for i, orig_row in original.iterrows():
+            ed_row = edited.iloc[i]
+            was_corrected = (
+                orig_row["category"] != ed_row["category"]
+                or orig_row["sub_category"] != ed_row["sub_category"]
+            )
+            feedback_db.save_eval_row(
+                ed_row["description"],
+                float(ed_row["amount"]),
+                ed_row["category"],
+                ed_row["sub_category"],
+                was_corrected=was_corrected,
+            )
+
         st.download_button(
             "Download Excel",
             data=excel_bytes,

@@ -203,15 +203,26 @@ def main():
     parser.add_argument("--db",          default="feedback.db")
     args = parser.parse_args()
 
-    # Load ground truth from feedback.db
+    # Load ground truth from eval_dataset (all rows, correct + incorrect)
+    # Falls back to corrections table if eval_dataset is empty (old behaviour)
     with sqlite3.connect(args.db) as conn:
         rows = conn.execute(
-            "SELECT description, amount, category, sub_category FROM corrections ORDER BY created_at"
+            "SELECT description, amount, true_category, true_sub_category FROM eval_dataset ORDER BY created_at"
         ).fetchall()
 
     if not rows:
-        print("feedback.db is empty — make some corrections in the app first, then re-run evals.")
+        print(
+            "No eval data yet.\n"
+            "Run the app, categorize a statement, then click Download Excel — "
+            "that saves every row (correct + incorrect) to the eval dataset.\n"
+            "Then re-run eval.py."
+        )
         sys.exit(1)
+
+    corrected_count = 0
+    with sqlite3.connect(args.db) as conn:
+        result = conn.execute("SELECT COUNT(*) FROM eval_dataset WHERE was_corrected=1").fetchone()
+        corrected_count = result[0] if result else 0
 
     if args.limit:
         rows = rows[:args.limit]
@@ -220,8 +231,8 @@ def main():
     categories = cfg["categories"]
 
     print(f"\n  Finance Tracker — Eval Suite")
-    print(f"  Model      : {args.model}")
-    print(f"  Ground truth: {len(rows)} corrections from feedback.db")
+    print(f"  Model       : {args.model}")
+    print(f"  Total rows  : {len(rows)}  ({corrected_count} were corrected by you, {len(rows)-corrected_count} were already correct)")
 
     # ── Run with feedback ──────────────────────────────────────────────────────
     print(f"\n  Running: WITH feedback examples (leave-one-out)…")
